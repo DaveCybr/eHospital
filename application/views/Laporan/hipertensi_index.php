@@ -1,0 +1,237 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card card-cascade narrower z-depth-1">
+      <div class="view view-cascade gradient-card-header blue-gradient narrower py-2 mx-4 mb-3 d-flex justify-content-between align-items-center">
+            <h4><a href="" class="white-text mx-3">Pasien Hipertensi / HT</a></h4>
+      </div>
+      <div class="card-body">
+          <!-- <div class="row form-group">
+                <div class="col-4 col-md-4">
+                  <label for="nama_satuan" class=" form-control-label">Bulan</label>
+                  <select id="bulan" class="mdb mdb-select">
+                    <?php
+                      for ($i=1; $i <= 12 ; $i++) {
+                        ?>
+                        <option <?php if ((int)$bulan == $i): ?>
+                          selected
+                        <?php endif; ?> value="0<?php echo $i?>">0<?php echo $i?></option>
+                      <?php
+                      }
+                    ?>
+                  </select>
+                </div>
+                <div class="col-4 col-md-4">
+                  <label for="nama_satuan" class=" form-control-label">Tahun</label>
+                  <select id="tahun" class="mdb mdb-select">
+                    <?php
+                      for ($i=0; $i <= 7 ; $i++) {
+                        ?>
+                        <option <?php if (date("Y",strtotime("-".$i." Year"))==$tahun): ?>
+                          selected
+                        <?php endif; ?> value="<?php echo date("Y",strtotime("-".$i." Year"))?>"><?php echo date("Y",strtotime("-".$i." Year"))?></option>
+                      <?php
+                      }
+                    ?>
+                  </select>
+                </div>
+                <div class="col-4 col-md-4">
+                  <button id="cari" class="btn btn-sm btn-primary">Cari</button>
+                </div>
+        </div> -->
+
+        <table id="example_blm" class="table table-bordered table-striped table-hover">
+          <thead>
+            <tr>
+              <th width="1%">No</th>
+              <th>Nomor RM</th>
+              <th>Nomor BPJS</th>
+              <th>Nama pasien</th>
+              <th>Umur</th>
+              <th>Prol</th>
+              <th>Prb</th>
+              <th>Status</th>
+              <th>Opsi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $berkunjung = 0 ;$status="Tidak";$tidak_terkendali = 0 ; $total=0;$terkendali=0;$jml = 1;$no=1;foreach ($pasien_aktif as $value): ?>
+              <?php
+              // if ($value->noBPJS!="0000000000000" && ($value->pstprol==NULL || $value->pstprol=='') && $value->sudah_update !=1  && $jml <= 5) {
+              //     ambil_peserta_prolanis($value->noBPJS);
+              //     $jml ++;
+              //
+              // }
+
+              if ($value->pstprol=="HT" && ($value->pstprb=="" || $value->pstprb==NULL)) {
+                $pro++;
+              }else{
+                if ($value->pstprol=="HT" && $value->pstprb=="HT" ) {
+                  $pro_prb++;
+                }else{
+                  if ($value->pstprb=="HT" && ($value->pstprol=="" || $value->pstprol==NULL)) {
+                    $prb++;
+                  }
+
+                }
+              }
+
+              $terakhir = explode("-",$value->kunjungan_terakhir);
+              $birthday = $value->tgl_lahir;
+
+              // Convert Ke Date Time
+              $biday = new DateTime($birthday);
+              $today = new DateTime();
+
+              $diff = $today->diff($biday);
+              $umur=$diff->y;
+              if ($terakhir[0]==$tahun && $terakhir[1]==$bulan) {
+
+                $res = $this->ModelLaporan->cek_kunj_ht($value->noRM,$bulan,$tahun);
+                if (!empty($res)) {
+                  if ($umur<65) {
+                    if (($res->osiastole >=120 && $res->osiastole <=129 ) && ($res->odiastole >= 70 &&$res->odiastole <= 79) ) {
+                      $bg = "#3fc380";
+                      $terkendali++;
+                      $status = "Terkendali";
+                    }else{
+                      $bg = "#e74c3c";
+                      $tidak_terkendali++;
+                      $status="Tidak";
+                    }
+                  }else{
+                    if (($res->osiastole >=130 && $res->osiastole <=139 ) && ($res->odiastole >= 70 &&$res->odiastole <= 79) ) {
+                      $bg = "#3fc380";
+                      $terkendali++;
+                      $status = "Terkendali";
+                    }else{
+                      $bg = "#e74c3c";
+                      $tidak_terkendali++;
+                      $status="Tidak";
+                    }
+
+                  }
+                  $berkunjung++;
+                }else{
+                  $bg = "";
+                  $status="Belum Berkunjung";
+                }
+
+              }else{
+                $bg = "";
+                $status="Belum Berkunjung";
+
+              }
+              $total++;
+              ?>
+              <tr style="background-color:<?php echo $bg?>">
+                <?php if ($bg==""): ?>
+                  <td><?php echo $no;?></td>
+                  <td><?php echo $value->noRM?></td>
+                  <td><?php echo $value->noBPJS;?></td>
+                  <td><?php echo $value->namapasien;?></td>
+                  <td><?php echo $umur;?> Tahun</td>
+                  <td><?php echo $value->pstprol;?></td>
+                  <td><?php echo $value->pstprb;?></td>
+                  <td><?php echo $status;?></td>
+                  <td>
+                    <button  type="button" class="btn btn-warning btn-sm riwayat" data-toggle="tooltip" norm="<?php echo $value->noRM?>" data-placement="top" title="" data-original-title="Riwayat">
+                      Riwayat
+                    </button>
+                  </td>
+                <?php else: ?>
+                  <td style="color:white;"><?php echo $no;?></td>
+                  <td style="color:white;"><?php echo $value->noRM?></td>
+                  <td style="color:white;"><?php echo $value->noBPJS;?></td>
+                  <td style="color:white;"><?php echo $value->namapasien;?></td>
+                  <td style="color:white;"><?php echo $umur;?> Tahun</td>
+                  <td style="color:white;"><?php echo $value->pstprol;?></td>
+                  <td style="color:white;"><?php echo $value->pstprb;?></td>
+                  <td style="color:white;"><?php echo $status;?></td>
+                  <td style="color:white;">
+                    <button  type="button" class="btn btn-warning btn-sm riwayat" data-toggle="tooltip" norm="<?php echo $value->noRM?>" data-placement="top" title="" data-original-title="Riwayat">
+                      Riwayat
+                    </button>
+                  </td>
+                <?php endif; ?>
+              </tr>
+            <?php $no++; endforeach; ?>
+            <p>Total Pasien Terdiagnosa : <?php echo $pasien+$pasien_non?>, BPJS : <?php echo $pasien?>, Non BPJS : <?php echo $pasien_non?></p>
+            <p>Prolanis HT Aktif : <?php echo $total?>
+              <!-- , PRB HT : <?php echo $prb?>
+              , PRO&PRB HT : <?php echo $pro_prb?>
+              , Total Flag HT : <?php echo $pro+$prb+$pro_prb?>  -->
+            </p>
+            <p>Berkunjung Bulan Ini : <?php echo $berkunjung?></p>
+            <p>Terkendali : <?php echo $terkendali?></p>
+            <p>Tidak Terkendali : <?php echo $tidak_terkendali?></p>
+            <p>Persentase Pasien HT Terkendali (Terkendali/Total Flag HT) : <?php echo round($terkendali/($total),2)*100?>%</p>
+            <a href="<?php echo base_url("Laporan/cetak_ht")?>"><button class="btn btn-sm btn-primary">Download Data</button></a>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modal_dm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-notify modal-info" role="document">
+    <!--Content-->
+    <div class="modal-content">
+      <!--Header-->
+      <div class="modal-header">
+        <p class="heading lead">Riwayat kunjungan</p>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" class="white-text">&times;</span>
+        </button>
+      </div>
+
+      <!--Body-->
+      <div class="modal-body">
+        <table class="table table-bordered table-striped table-hover">
+            <thead>
+              <tr>
+                <th width="1%">No</th>
+                <th>Tanggal Kunjungan</th>
+                <th>Sistole</th>
+                <th>Diastole</th>
+              </tr>
+            </thead>
+            <tbody id="riwayat_pasien">
+            </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <a type="button" class="btn btn-outline-info waves-effect" data-dismiss="modal">Close</a>
+      </div>
+    </div>
+    <!--/.Content-->
+  </div>
+</div>
+
+<script>
+  $(document).ready(function(){
+    $(document).on("click","#cari",function(){
+      let bulan = $("#bulan").val();
+      let tahun = $("#tahun").val();
+      window.location.href = '<?php echo base_url("Laporan/pasien_hipertensi/")?>'+bulan+'/'+tahun
+    })
+    $("#example_blm").DataTable();
+
+    $(document).on("click",".riwayat",function(){
+      let norm = $(this).attr("norm");
+      $.ajax({
+        type: 'POST',
+        url: '<?php echo base_url();?>Laporan/get_riwayat_ht/',
+        data: {norm: norm},
+        success: function (response) {
+          $("#riwayat_pasien").html(response);
+        }
+      })
+      $("#modal_dm").modal("toggle");
+    })
+  })
+
+</script>
